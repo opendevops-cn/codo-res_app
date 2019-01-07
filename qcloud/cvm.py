@@ -78,41 +78,11 @@ class CVM_API():
             print('[Error]: 请检查填写信息是否正确，确保ID和Key有云服务器的权限，错误信息：{}'.format(e))
             exit(-1)
 
-    def create_cvm(self, zone_name, instance_name, instance_type, password, disk_size, project_id):
+    def create_cvm(self, params):
 
         api_url = 'cvm.tencentcloudapi.com/?'
-        keydict = {
-            # 公共参数部分
-            'Timestamp': str(int(time.time())),
-            'Nonce': str(int(random.random() * 1000)),
-            'Region': self.region,
-            'SecretId': self.id,
-            'Version': '2017-03-12',
-            # 'SignatureMethod': SignatureMethod,
-            # 接口参数部分
-            'Action': 'RunInstances',
-            'Placement.Zone': zone_name,
-            'Placement.ProjectId': str(project_id),
-            'VirtualPrivateCloud.VpcId': self.vpc,
-            'VirtualPrivateCloud.SubnetId': self.subnet,
-            # 'SecurityGroupIds.0': securit_group_id,
-            'InstanceChargeType': 'POSTPAID_BY_HOUR',
-            'ImageId': self.ami,
-            'InstanceType': instance_type,
-            'SystemDisk.DiskType': 'CLOUD_SSD',
-            'SystemDisk.DiskSize': str(disk_size),
-            'InternetAccessible.InternetChargeType': 'TRAFFIC_POSTPAID_BY_HOUR',
-            'InternetAccessible.InternetMaxBandwidthOut': '100',
-            'InternetAccessible.PublicIpAssigned': 'TRUE',
-            'InstanceName': instance_name,
-            'LoginSettings.Password': password,
-            'EnhancedService.SecurityService.Enabled': 'TRUE',
-            'EnhancedService.MonitorService.Enabled': 'TRUE',
-            'InstanceCount': '1',
-        }
-
         try:
-            result_url = ApiOper.run(keydict, api_url, self.key)
+            result_url = ApiOper.run(params, api_url, self.key)
             # print(result_url)
             response = requests.get(result_url)
             if response.status_code == 200:
@@ -149,37 +119,76 @@ class CVM_API():
             return ret
 
 
-def main(instance_name, instance_type, project_id, disk_size):
+def main(instance_name, instance_type, disk_size, project_id=None, securit_group_id=None):
     """
     购买腾讯云机器，默认按小时收费
     :param instance_name: 主机名，多个用逗号隔开
     :param instance_type: 实例类型，如：S3.SMALL1
-    :param project_id: 项目ID，腾讯云有项目概念，你希望把机器开在哪个项目里面
     :param disk_size: 磁盘大小
+    :param project_id: 项目ID，腾讯云有项目概念，你希望把机器开在哪个项目里面，不输则默认项目
+    :param securit_group_id: 安全组ID，不输则默认安全组
     :return:
+    成功返回实例ID
+    {'Response': {'InstanceIdSet': ['ins-qg3235sb'], 'RequestId': 'bb2af389-5186-463b-a41b-3bb91d457dd4'}}
     """
-
+    # 这里数据是从前端传过来的，现在前端还没有完善，暂时假数据
     data = {
-        'SecretId': 'xxxxxxxxxxxxxxxxxxxxx',
-        'SecretKey': 'xxxxxxxxxxxxxxxxxxxxxx',
+        'SecretId': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        'SecretKey': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
         'region': 'ap-shanghai',
         'vpc_id': 'vpc-iikzqifi',
         'subnet_id': 'subnet-ll604xp9',
         'ami_id': 'img-oikl1tzv',
         'zone_name': 'ap-shanghai-3'
     }
+
     for instance in instance_name.split(','):
         obj = CVM_API(data)
         # 查询HOSTNAME实例是否存在
         obj.get_instances(instance)
-        # 获取区域ID，机器开在哪个可用去下面
-        zone_name = data.get('zone_name')
         password = GenPassword(16)  # 随机密码
 
         data_info = {}
         # 购买机器并返回信息
-        shop = obj.create_cvm(zone_name, instance, instance_type, password, disk_size, project_id)
-        # print(shop)  # 这里print出来为了排错，腾讯与坑太多，有很多未知的错误。
+        params = {
+            # 公共参数部分
+            'Timestamp': str(int(time.time())),
+            'Nonce': str(int(random.random() * 1000)),
+            'Region': data.get('region'),
+            'SecretId': data.get('SecretId'),
+            'Version': '2017-03-12',
+            # 'SignatureMethod': SignatureMethod,
+            # 接口参数部分
+            'Action': 'RunInstances',
+            'Placement.Zone': data.get('zone_name'),
+            # 'Placement.ProjectId': str(project_id),
+            'VirtualPrivateCloud.VpcId': data.get('vpc_id'),
+            'VirtualPrivateCloud.SubnetId': data.get('subnet_id'),
+            # 'SecurityGroupIds.0': securit_group_id,
+            'InstanceChargeType': 'POSTPAID_BY_HOUR',
+            'ImageId': data.get('ami_id'),
+            'InstanceType': instance_type,
+            'SystemDisk.DiskType': 'CLOUD_SSD',
+            'SystemDisk.DiskSize': str(disk_size),
+            'InternetAccessible.InternetChargeType': 'TRAFFIC_POSTPAID_BY_HOUR',
+            'InternetAccessible.InternetMaxBandwidthOut': '100',
+            'InternetAccessible.PublicIpAssigned': 'TRUE',
+            'InstanceName': instance_name,
+            'LoginSettings.Password': password,
+            'EnhancedService.SecurityService.Enabled': 'TRUE',
+            'EnhancedService.MonitorService.Enabled': 'TRUE',
+            'InstanceCount': '1',
+        }
+
+        # 判断用户是否给了项目ID，没给机器开通在默认项目
+        if project_id != None:
+            params['Placement.ProjectId'] = str(project_id)
+        # 判断用户是否给了安全组ID，没给机器开通在默认安全组
+        if securit_group_id != None:
+            params['SecurityGroupIds.0'] = str(securit_group_id)
+
+        # 购买机器
+        shop = obj.create_cvm(params)
         try:
             data1 = shop['Response']['InstanceIdSet']
             instance_id = data1[0]
@@ -195,7 +204,7 @@ def main(instance_name, instance_type, project_id, disk_size):
             }
             data_save(data_info, sys.argv[0])
         except Exception as e:
-            print('[Error]: 购买失败，信息：{},{}'.format(e, shop))
+            print('[Error]: 购买失败，信息：{}, {}'.format(e, shop))
             exit(-3)
 
 
@@ -203,9 +212,12 @@ if __name__ == '__main__':
     fire.Fire(main)
 
 """
-Usage:       cvm.py INSTANCE_NAME INSTANCE_TYPE PROJECT_ID DISK_SIZE
-             cvm.py --instance-name INSTANCE_NAME --instance-type INSTANCE_TYPE --project-id PROJECT_ID --disk-size DISK_SIZE
+Usage:       cvm.py INSTANCE_NAME INSTANCE_TYPE DISK_SIZE [PROJECT_ID] [SECURIT_GROUP_ID]
+             cvm.py --instance-name INSTANCE_NAME --instance-type INSTANCE_TYPE --disk-size DISK_SIZE [--project-id PROJECT_ID] [--securit-group-id SECURIT_GROUP_ID]
 
 示例：
-python3 cvm.py --instance-name='yanghongfeitest' --instance-type='S3.SMALL1' --project_id=1120490 --disk-size=50
+开通机器在默认项目，关联默认安全组
+python3 cvm.py --instance-name='yanghongfeitest' --instance-type='S3.SMALL1' --disk-size=50
+开通机器在指定项目，关联指定安全组
+python3 cvm.py --instance-name='yanghongfeitest02' --instance-type='S3.SMALL1' --disk-size=50 --project-id=1120490 --securit-group-id=sg-l6raxqpu
 """
