@@ -1,0 +1,16 @@
+{}
+{
+    "yanghongfeitest2": {
+        "hostname": "yanghongfeitest2",
+        "password": "password",
+        "public_ip": "129.211.39.111",
+        "username": "root"
+    }
+}{
+    "yanghongfeitest3": {
+        "hostname": "yanghongfeitest3",
+        "password": "password",
+        "public_ip": "212.64.87.111",
+        "username": "root"
+    }
+}
