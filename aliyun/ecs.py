@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Time    : 7/24/2018 10:29 AM
+# @Time    : 2019/1/4 16:24
 # @Author  : Fred Yang
-# @File    : aliyun_sync_cmdb.py
-# @Role    : 获取Aliyun资产信息推送到CMDB
+# @File    : ecs.py
+# @Role    : 阿里云ECS开通脚本(暗小时计费)
+
 
 import os
 import sys
