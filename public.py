@@ -59,10 +59,10 @@ def lock_json(script_name):
         p_id = os.getpid()
         wp_pid.write(str(p_id))
 
-def data_save(data_info,script_name):
-    lock_json(script_name)
+def data_save(data_info):
+    # lock_json(script_name)
     file_name = 'data.json'
     if not os.path.exists(file_name):
-        os.system("echo {} > %s" % file_name)
+        os.system("echo " " > %s" % file_name)
     with open(file_name, 'a+') as file:
         json.dump(data_info, file, sort_keys=True, indent=4)

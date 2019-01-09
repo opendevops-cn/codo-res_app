@@ -1,3 +1,4 @@
 .git
 __pycache__
 qcloud/__pycache__
+aliyun/__pycache__

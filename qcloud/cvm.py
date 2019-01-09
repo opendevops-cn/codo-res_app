@@ -143,6 +143,7 @@ def main(instance_name, instance_type, disk_size, project_id=None, securit_group
     }
 
     for instance in instance_name.split(','):
+        print('Instance: {}'.format(instance))
         obj = CVM_API(data)
         # 查询HOSTNAME实例是否存在
         obj.get_instances(instance)
@@ -202,7 +203,7 @@ def main(instance_name, instance_type, disk_size, project_id=None, securit_group
                 'username': 'root',
                 'password': password
             }
-            data_save(data_info, sys.argv[0])
+            data_save(data_info)
         except Exception as e:
             print('[Error]: 购买失败，信息：{}, {}'.format(e, shop))
             exit(-3)

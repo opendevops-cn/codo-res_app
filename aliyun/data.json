@@ -1,0 +1,9 @@
+{
+    "OPS-ALY-01-test02": {
+        "hostname": "OPS-ALY-01-test02",
+        "password": "xxxxxxxxxx",
+        "private_ip": "172.16.0.39",
+        "public_ip": "xxx.xxx.xxx.xx",
+        "username": "root"
+    }
+

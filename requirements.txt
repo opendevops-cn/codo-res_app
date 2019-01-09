@@ -1,2 +1,5 @@
+requests
+aliyun_python_sdk_vpc==3.0.2
 fire==0.1.3
-requests==2.20.0
+aliyun_python_sdk_core==2.11.5
+aliyun_python_sdk_ecs==4.15.0
